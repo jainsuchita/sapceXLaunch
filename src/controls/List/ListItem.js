@@ -73,13 +73,13 @@ export default function MuiListItem({ item }) {
             <Divider className={classes.divider} variant="inset" component="li" />
             <Collapse in={open} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                    <ListItem button className={classes.nested}>
+                    <ListItem className={classes.nested}>
                         <ListItemIcon>
                             <StarBorder />
                         </ListItemIcon>
                         <ListItemText primary="Flight number" secondary={item.flight_number} />
                     </ListItem>
-                    <ListItem button className={classes.nested}>
+                    <ListItem className={classes.nested}>
                         <ListItemIcon>
                             <StarBorder />
                         </ListItemIcon>
@@ -87,7 +87,7 @@ export default function MuiListItem({ item }) {
                     </ListItem>
                     {
                         item.mission_id[0] &&
-                        <ListItem button className={classes.nested}>
+                        <ListItem className={classes.nested}>
 
 
                             <ListItemIcon>
