@@ -6,16 +6,11 @@ import { makeStyles } from "@material-ui/core/styles";
 
 // Material UI Components
 import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import Divider from "@material-ui/core/Divider";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import Typography from "@material-ui/core/Typography";
-import Avatar from '@material-ui/core/Avatar';
-import FlightIcon from '@material-ui/icons/Flight';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 // Local Components
 import { APIEndPoints } from "modules";
+import MuiListItem from "./ListItem";
 
 const LAUNCH_YEAR = "2014";
 
@@ -24,10 +19,17 @@ const useStyles = makeStyles(theme => ({
         width: "100%",
         maxWidth: 360,
         backgroundColor: theme.palette.background.paper,
+        display: "inline-block",
+        border: "1px solid #888"
     },
-    inline: {
-        display: "inline",
+
+    progress: {
+        margin: theme.spacing(2),
     },
+
+    appHeader: {
+        margin: theme.spacing(3)
+    }
 }));
 
 function getFlightsBeforeYear(flights) {
@@ -35,64 +37,44 @@ function getFlightsBeforeYear(flights) {
     return filteredflights;
 }
 
-function MuiListItem({ flight }) {
+export default function MuiList() {
     const classes = useStyles();
 
-    let date = new Date(flight.launch_date_local);
-    return (
-        <>
-            <ListItem alignItems="flex-start">
-                <ListItemAvatar>
-                    <Avatar>
-                        <FlightIcon />
-                    </Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                    primary={flight.mission_name}
-                    secondary={
-                        <React.Fragment>
-                            <Typography
-                                component="span"
-                                variant="body2"
-                                className={classes.inline}
-                                color="textPrimary"
-                            >
-                                {date.toLocaleDateString()}
-                            </Typography>
-                        </React.Fragment>
-                    }
-                />
-            </ListItem>
-            <Divider variant="inset" component="li" />
-        </>
-    )
-}
-
-export default function AlignItemsList() {
-    const classes = useStyles();
-
-    const [data, setData] = useState({ flights: [] });
+    const [state, setState] = useState({ flights: [], isLoading: false });
 
     useEffect(() => {
+        setState({ ...state, isLoading: true });
+
         const fetchData = async () => {
             const result = await axios(APIEndPoints.launches);
             let flights = getFlightsBeforeYear(result.data);
-            setData({ flights: flights });
+            setState({ flights: flights, isLoading: false });
         }
 
         fetchData();
     }, []);
 
 
-    console.log(data.flights);
-    return (
-        <List className={classes.root}>
-            {
-                data.flights.map((flight) => {
-                    return <MuiListItem flight={flight} key={flight.flight_number} />
-                })
-            }
+    console.log(state);
 
-        </List>
+    return (
+        <>
+            <header className={classes.appHeader}>
+                Total Launches
+            </header>
+            {
+                state.isLoading ?
+                    <CircularProgress className={classes.progress} color="secondary" />
+                    :
+                    <List className={classes.root}>
+                        {
+                            state.flights.map((flight) => {
+                                return <MuiListItem item={flight} key={flight.flight_number} />
+                            })
+                        }
+
+                    </List>
+            }
+        </>
     );
 }
