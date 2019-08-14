@@ -60,7 +60,7 @@ export default function MuiList() {
     return (
         <>
             <header className={classes.appHeader}>
-                Total Launches
+                Total Launches {state.flights && state.flights.length} launched in {LAUNCH_YEAR}
             </header>
             {
                 state.isLoading ?
