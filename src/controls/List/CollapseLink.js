@@ -1,5 +1,4 @@
 import React from "react";
-import axios from "axios";
 
 // Styles
 import { makeStyles } from "@material-ui/core/styles";
@@ -16,6 +15,8 @@ import ListItemText from "@material-ui/core/ListItemText";
 // Local Components
 import { APIEndPoints } from "modules";
 import Loader from "../Loader/Loader";
+import useApiRequest from "modules/Hooks/useAPIRequest";
+import { FETCHING, SUCCESS, ERROR } from "modules/Hooks/useAPIRequest/actionTypes";
 
 const useStyles = makeStyles(theme => ({
     divider: {
@@ -27,23 +28,28 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+function SecondaryText({ status, text }) {
+
+    text = text ? text : "-";
+    return (
+        <>
+            {status === FETCHING && <Loader />}
+            {status === SUCCESS && text}
+            {status === ERROR && "Error in fetching the data"}
+        </>
+    );
+};
+
 export default function CollapseLinks({ open, flightNo }) {
     const classes = useStyles();
-    const [state, setState] = React.useState({ flight: {}, isLoading: false });
+    const [{ status, response }, makeRequest] = useApiRequest(`${APIEndPoints.launches}/${flightNo}`);
 
     React.useEffect(() => {
-        setState({ ...state, isLoading: true });
-
-        const fetchData = async () => {
-            console.log("called");
-            const result = await axios(`${APIEndPoints.launches}/${flightNo}`);
-            setState({ flight: result.data, isLoading: false });
-        }
-
-        fetchData();
+        makeRequest();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const { flight, isLoading } = state;
+    const flight = response && response.data;
 
     return (
         <Collapse in={open} timeout="auto" unmountOnExit>
@@ -52,21 +58,23 @@ export default function CollapseLinks({ open, flightNo }) {
                     <ListItemIcon>
                         <StarBorder />
                     </ListItemIcon>
-                    <ListItemText primary="Flight number" secondary={isLoading ? <Loader /> : flight.flight_number} />
+                    <ListItemText primary="Flight number"
+                        secondary={<SecondaryText status={status} text={flight && flight.flight_number} />} />
                 </ListItem>
                 <ListItem className={classes.nested}>
                     <ListItemIcon>
                         <StarBorder />
                     </ListItemIcon>
-                    <ListItemText primary="Mission Name" secondary={isLoading ? <Loader /> : flight.mission_name} />
+                    <ListItemText primary="Mission Name"
+                        secondary={<SecondaryText status={status} text={flight && flight.mission_name} />} />
                 </ListItem>
                 {
-                    flight && flight.mission_id && flight.mission_id[0] &&
                     <ListItem className={classes.nested}>
                         <ListItemIcon>
                             <StarBorder />
                         </ListItemIcon>
-                        <ListItemText primary="Mission Id" secondary={isLoading ? <Loader /> : flight.mission_id[0]} />
+                        <ListItemText primary="Mission Id"
+                            secondary={<SecondaryText status={status} text={flight && flight.mission_id[0]} />} />
                     </ListItem>
                 }
 

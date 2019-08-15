@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React from "react";
 
 // Styles
 import { makeStyles } from "@material-ui/core/styles";
@@ -12,6 +11,8 @@ import Typography from "@material-ui/core/Typography";
 import { APIEndPoints } from "modules";
 import MuiListItem from "./ListItem";
 import Loader from "../Loader/Loader";
+import useApiRequest from "modules/Hooks/useAPIRequest";
+import { FETCHING, SUCCESS, ERROR } from "modules/Hooks/useAPIRequest/actionTypes";
 
 const LAUNCH_YEAR = "2014";
 
@@ -48,41 +49,42 @@ function getFlightsBeforeYear(flights) {
 export default function MuiList() {
     const classes = useStyles();
 
-    const [state, setState] = useState({ flights: [], isLoading: false });
+    const [{ status, response }, makeRequest] = useApiRequest(APIEndPoints.launches);
 
-    useEffect(() => {
-        setState({ ...state, isLoading: true });
-
-        const fetchData = async () => {
-            const result = await axios(APIEndPoints.launches);
-            let flights = getFlightsBeforeYear(result.data);
-            setState({ flights: flights, isLoading: false });
-        }
-
-        fetchData();
+    React.useEffect(() => {
+        makeRequest();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+
+    let flights = [];
+    flights = response && getFlightsBeforeYear(response.data)
+    console.log(flights);
 
     return (
         <>
             <Typography className={classes.appHeader} variant="h6" >
-                Total Launches <strong>{state.flights && state.flights.length}</strong> launched in <strong>{LAUNCH_YEAR}</strong>
+                Total Launches <strong>{flights && flights.length}</strong> launched in <strong>{LAUNCH_YEAR}</strong>
             </Typography>
 
             {
-                state.isLoading ?
-                    <Loader size={40} loaderClass={classes.loader}>
-                        <Typography variant="body2">Wait while we load your data</Typography>
-                    </Loader>
-                    :
-                    state.flights.length > 0 &&
-                    <List className={classes.root}>
-                        {
-                            state.flights.map((flight) => {
-                                return <MuiListItem item={flight} key={flight.flight_number} />
-                            })
-                        }
-                    </List>
+                status === FETCHING &&
+                <Loader size={40} loaderClass={classes.loader}>
+                    <Typography variant="body2">Wait while we load your data</Typography>
+                </Loader>
+            }
+            {
+                status === SUCCESS &&
+                <List className={classes.root}>
+                    {
+                        flights && flights.map((flight) => {
+                            return <MuiListItem item={flight} key={flight.flight_number} />
+                        })
+                    }
+                </List>
+            }
+            {
+                status === ERROR && JSON.stringify(response)
             }
         </>
     );
