@@ -1,4 +1,5 @@
 import React from "react";
+import axios from "axios";
 
 // Styles
 import { makeStyles } from "@material-ui/core/styles";
@@ -17,6 +18,9 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 import StarBorder from '@material-ui/icons/StarBorder';
 import List from '@material-ui/core/List';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
+
+import { APIEndPoints } from "modules";
+import Loader from "../Loader/Loader";
 
 const useStyles = makeStyles(theme => ({
     inline: {
@@ -39,12 +43,22 @@ const useStyles = makeStyles(theme => ({
 export default function MuiListItem({ item }) {
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
+    const [state, setState] = React.useState({ flight: {}, isLoading: false });
 
-    function handleClick() {
+    async function handleClick() {
         setOpen(!open);
+
+        if (!open) {
+            setState({ ...state, isLoading: true });
+            const result = await axios(`${APIEndPoints.launches}/${item.flight_number}`);
+            console.log("result", result.data);
+            setState({ flight: result.data, isLoading: false });
+        }
     }
 
     let date = new Date(item.launch_date_local);
+
+    const { isLoading, flight } = state;
     return (
         <>
             <ListItem className={classes.root} alignItems="flex-start" onClick={handleClick}>
@@ -77,27 +91,27 @@ export default function MuiListItem({ item }) {
                         <ListItemIcon>
                             <StarBorder />
                         </ListItemIcon>
-                        <ListItemText primary="Flight number" secondary={item.flight_number} />
+                        <ListItemText primary="Flight number" secondary={isLoading ? <Loader /> : flight.flight_number} />
                     </ListItem>
                     <ListItem className={classes.nested}>
                         <ListItemIcon>
                             <StarBorder />
                         </ListItemIcon>
-                        <ListItemText primary="Mission Name" secondary={item.mission_name} />
+                        <ListItemText primary="Mission Name" secondary={isLoading ? <Loader /> : flight.mission_name} />
                     </ListItem>
                     {
-                        item.mission_id[0] &&
+                        flight && flight.mission_id && flight.mission_id[0] &&
                         <ListItem className={classes.nested}>
-
-
                             <ListItemIcon>
                                 <StarBorder />
                             </ListItemIcon>
-                            <ListItemText primary="Mission Id" secondary={item.mission_id[0]} />
+                            <ListItemText primary="Mission Id" secondary={isLoading ? <Loader /> : item.mission_id[0]} />
                         </ListItem>
                     }
+
                     <Divider className={classes.divider} variant="inset" component="li" />
                 </List>
+
             </Collapse>
 
         </>

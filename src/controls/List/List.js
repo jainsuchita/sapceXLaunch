@@ -6,11 +6,12 @@ import { makeStyles } from "@material-ui/core/styles";
 
 // Material UI Components
 import List from "@material-ui/core/List";
-import CircularProgress from '@material-ui/core/CircularProgress';
+import Typography from "@material-ui/core/Typography";
 
 // Local Components
 import { APIEndPoints } from "modules";
 import MuiListItem from "./ListItem";
+import Loader from "../Loader/Loader";
 
 const LAUNCH_YEAR = "2014";
 
@@ -29,6 +30,13 @@ const useStyles = makeStyles(theme => ({
 
     appHeader: {
         margin: theme.spacing(3)
+    },
+
+    loader: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center"
     }
 }));
 
@@ -55,24 +63,25 @@ export default function MuiList() {
     }, []);
 
 
-    console.log(state);
-
     return (
         <>
-            <header className={classes.appHeader}>
-                Total Launches {state.flights && state.flights.length} launched in {LAUNCH_YEAR}
-            </header>
+            <Typography className={classes.appHeader} variant="h6" >
+                Total Launches <strong>{state.flights && state.flights.length}</strong> launched in <strong>{LAUNCH_YEAR}</strong>
+            </Typography>
+
             {
                 state.isLoading ?
-                    <CircularProgress className={classes.progress} color="secondary" />
+                    <Loader size={40} loaderClass={classes.loader}>
+                        <Typography variant="body2">Wait while we load your data</Typography>
+                    </Loader>
                     :
+                    state.flights.length > 0 &&
                     <List className={classes.root}>
                         {
                             state.flights.map((flight) => {
                                 return <MuiListItem item={flight} key={flight.flight_number} />
                             })
                         }
-
                     </List>
             }
         </>
